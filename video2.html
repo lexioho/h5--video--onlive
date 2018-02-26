@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <video controls autoplay>  
+        <source src="http://devimages.apple.com/iphone/samples/bipbop/masterplaylist.m3u8" type="application/vnd.apple.mpegurl" /> 
+        <p class="warning">Your browser does not support HTML5 video.</p>  
+    </video>
+    <script>
+        var vidElement = document.querySelector('video');
+
+if (window.MediaSource) {
+  var mediaSource = new MediaSource();
+  vidElement.src = URL.createObjectURL(mediaSource);
+  mediaSource.addEventListener('sourceopen', sourceOpen);
+} else {
+  console.log("The Media Source Extensions API is not supported.")
+}
+
+function sourceOpen(e) {
+  URL.revokeObjectURL(vidElement.src);
+  var mime = 'video/webm; codecs="opus, vp9"';
+  var mediaSource = e.target;
+  var sourceBuffer = mediaSource.addSourceBuffer(mime);
+  var videoUrl = 'droid.webm';
+  fetch(videoUrl)
+    .then(function(response) {
+      return response.arrayBuffer();
+    })
+    .then(function(arrayBuffer) {
+      sourceBuffer.addEventListener('updateend', function(e) {
+        if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
+          mediaSource.endOfStream();
+        }
+      });
+      sourceBuffer.appendBuffer(arrayBuffer);
+    });
+}
+    </script>
+</body>
+</html>
